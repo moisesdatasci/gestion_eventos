@@ -1,0 +1,47 @@
+{% extends 'eventos/base.html' %}
+
+{% block title %}Eliminar Evento{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-octagon"></i>
+                    <strong>¡Advertencia!</strong> Esta acción no se puede deshacer.
+                </div>
+                
+                <h5>¿Estás seguro que deseas eliminar este evento?</h5>
+                <div class="card bg-light mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ object.titulo }}</h6>
+                        <p class="card-text">
+                            <i class="bi bi-calendar3"></i> {{ object.fecha_inicio|date:"d/m/Y H:i" }}<br>
+                            <i class="bi bi-geo-alt"></i> {{ object.ubicacion }}<br>
+                            <i class="bi bi-people"></i> {{ object.participantes.count }} participantes inscritos
+                        </p>
+                    </div>
+                </div>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-trash"></i> Sí, Eliminar Evento
+                        </button>
+                        <a href="{% url 'detalle_evento' object.pk %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

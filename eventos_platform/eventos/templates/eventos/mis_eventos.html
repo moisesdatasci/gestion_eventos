@@ -1,0 +1,54 @@
+{% extends 'eventos/base.html' %}
+
+{% block title %}Mis Eventos{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="bi bi-calendar-check"></i> Mis Eventos Inscritos
+</h1>
+
+{% if eventos %}
+<div class="row">
+    {% for evento in eventos %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">{{ evento.titulo }}</h5>
+                <p><span class="badge bg-info">{{ evento.get_tipo_display }}</span></p>
+                <p class="card-text text-truncate">{{ evento.descripcion }}</p>
+                <hr>
+                <p class="card-text small">
+                    <i class="bi bi-calendar3"></i> {{ evento.fecha_inicio|date:"d/m/Y H:i" }}
+                </p>
+                <p class="card-text small">
+                    <i class="bi bi-geo-alt"></i> {{ evento.ubicacion }}
+                </p>
+                <p class="card-text small">
+                    <i class="bi bi-people"></i> {{ evento.participantes.count }}/{{ evento.capacidad }}
+                </p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'detalle_evento' evento.pk %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-eye"></i> Ver Detalles
+                    </a>
+                    <a href="{% url 'cancelar_inscripcion' evento.id %}" class="btn btn-warning btn-sm">
+                        <i class="bi bi-person-dash"></i> Cancelar Inscripción
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-info-circle"></i>
+    <h4>No estás inscrito en ningún evento</h4>
+    <p>Explora los eventos disponibles y comienza a participar.</p>
+    <a href="{% url 'lista_eventos' %}" class="btn btn-primary">
+        <i class="bi bi-calendar-event"></i> Ver Eventos Disponibles
+    </a>
+</div>
+{% endif %}
+{% endblock %}

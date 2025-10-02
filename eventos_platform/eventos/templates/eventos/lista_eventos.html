@@ -1,0 +1,97 @@
+{% extends 'eventos/base.html' %}
+
+{% block title %}Todos los Eventos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-calendar-event"></i> Todos los Eventos</h1>
+    {% if user.is_authenticated and user.perfil.rol != 'asistente' %}
+    <a href="{% url 'crear_evento' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Crear Evento
+    </a>
+    {% endif %}
+</div>
+
+<div class="row">
+    {% for evento in eventos %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            {% if evento.privacidad == 'privado' %}
+            <span class="badge bg-danger position-absolute top-0 end-0 m-2">
+                <i class="bi bi-lock"></i> Privado
+            </span>
+            {% else %}
+            <span class="badge bg-success position-absolute top-0 end-0 m-2">
+                <i class="bi bi-unlock"></i> Público
+            </span>
+            {% endif %}
+            
+            <div class="card-body">
+                <h5 class="card-title">{{ evento.titulo }}</h5>
+                <p><span class="badge bg-info">{{ evento.get_tipo_display }}</span></p>
+                <p class="card-text text-truncate">{{ evento.descripcion }}</p>
+                <hr>
+                <p class="card-text small">
+                    <i class="bi bi-person"></i> <strong>Creador:</strong> {{ evento.creador.get_full_name|default:evento.creador.username }}
+                </p>
+                <p class="card-text small">
+                    <i class="bi bi-calendar3"></i> {{ evento.fecha_inicio|date:"d/m/Y H:i" }}
+                </p>
+                <p class="card-text small">
+                    <i class="bi bi-geo-alt"></i> {{ evento.ubicacion }}
+                </p>
+                <div class="progress mb-2" style="height: 20px;">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ evento.participantes.count|add:0 }}{{ evento.capacidad|add:0 }}%"
+                         aria-valuenow="{{ evento.participantes.count }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="{{ evento.capacidad }}">
+                        {{ evento.participantes.count }}/{{ evento.capacidad }}
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'detalle_evento' evento.pk %}" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-eye"></i> Ver Detalles
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4>No hay eventos disponibles</h4>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Paginación -->
+{% if is_paginated %}
+<nav aria-label="Paginación">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">Primera</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+        </li>
+        {% endif %}
+        
+        <li class="page-item active">
+            <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'eventos/base.html' %}
+
+{% block title %}Inicio - Gestión de Eventos{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="p-5 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5">
+        <h1 class="display-5 fw-bold">Plataforma de Gestión de Eventos</h1>
+        <p class="col-md-8 fs-4">
+            Descubre, crea y participa en eventos increíbles. 
+            {% if not user.is_authenticated %}
+            Regístrate para comenzar.
+            {% endif %}
+        </p>
+        {% if not user.is_authenticated %}
+        <a href="{% url 'registro' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-person-plus"></i> Registrarse Ahora
+        </a>
+        <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">
+            <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+        </a>
+        {% else %}
+        <a href="{% url 'lista_eventos' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-calendar-event"></i> Ver Todos los Eventos
+        </a>
+        {% if user.perfil.rol == 'organizador' or user.perfil.rol == 'administrador' %}
+        <a href="{% url 'crear_evento' %}" class="btn btn-success btn-lg">
+            <i class="bi bi-plus-circle"></i> Crear Evento
+        </a>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Estadísticas rápidas (solo para usuarios autenticados) -->
+{% if user.is_authenticated %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-calendar-check display-4 text-primary"></i>
+                <h3 class="mt-2">{{ user.eventos_inscritos.count }}</h3>
+                <p class="text-muted">Eventos Inscritos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-calendar-plus display-4 text-success"></i>
+                <h3 class="mt-2">{{ user.eventos_creados.count }}</h3>
+                <p class="text-muted">Eventos Creados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-person-badge display-4 text-info"></i>
+                <h3 class="mt-2">{{ user.perfil.get_rol_display }}</h3>
+                <p class="text-muted">Tu Rol</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Eventos Destacados -->
+<h2 class="mb-4">
+    <i class="bi bi-star"></i> Eventos Destacados
+</h2>
+<div class="row">
+    {% for evento in eventos %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            {% if evento.privacidad == 'privado' %}
+            <span class="badge bg-danger position-absolute top-0 end-0 m-2">
+                <i class="bi bi-lock"></i> Privado
+            </span>
+            {% else %}
+            <span class="badge bg-success position-absolute top-0 end-0 m-2">
+                <i class="bi bi-unlock"></i> Público
+            </span>
+            {% endif %}
+            
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-calendar-event text-primary"></i>
+                    {{ evento.titulo }}
+                </h5>
+                <p class="card-text">
+                    <span class="badge bg-info">{{ evento.get_tipo_display }}</span>
+                </p>
+                <p class="card-text text-truncate">{{ evento.descripcion }}</p>
+                <hr>
+                <p class="card-text small">
+                    <i class="bi bi-calendar3"></i> {{ evento.fecha_inicio|date:"d/m/Y H:i" }}
+                </p>
+                <p class="card-text small">
+                    <i class="bi bi-geo-alt"></i> {{ evento.ubicacion }}
+                </p>
+                <p class="card-text small">
+                    <i class="bi bi-people"></i> {{ evento.participantes.count }}/{{ evento.capacidad }} participantes
+                </p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'detalle_evento' evento.pk %}" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-eye"></i> Ver Detalles
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4>No hay eventos disponibles</h4>
+            {% if user.is_authenticated and user.perfil.rol != 'asistente' %}
+            <p>¡Sé el primero en crear un evento!</p>
+            <a href="{% url 'crear_evento' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Evento
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if eventos %}
+<div class="text-center mt-4">
+    <a href="{% url 'lista_eventos' %}" class="btn btn-outline-primary btn-lg">
+        Ver Todos los Eventos <i class="bi bi-arrow-right"></i>
+    </a>
+</div>
+{% endif %}
+{% endblock %}

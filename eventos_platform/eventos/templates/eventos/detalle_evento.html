@@ -1,0 +1,137 @@
+{% extends 'eventos/base.html' %}
+
+{% block title %}{{ evento.titulo }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Información del Evento -->
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="bi bi-calendar-event"></i> {{ evento.titulo }}
+                    {% if evento.privacidad == 'privado' %}
+                    <span class="badge bg-danger float-end">
+                        <i class="bi bi-lock"></i> Privado
+                    </span>
+                    {% else %}
+                    <span class="badge bg-success float-end">
+                        <i class="bi bi-unlock"></i> Público
+                    </span>
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <span class="badge bg-info fs-6 mb-3">{{ evento.get_tipo_display }}</span>
+                
+                <h5>Descripción:</h5>
+                <p>{{ evento.descripcion }}</p>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><i class="bi bi-calendar3"></i> <strong>Fecha de Inicio:</strong><br>
+                           {{ evento.fecha_inicio|date:"l, d de F de Y - H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><i class="bi bi-calendar-x"></i> <strong>Fecha de Fin:</strong><br>
+                           {{ evento.fecha_fin|date:"l, d de F de Y - H:i" }}</p>
+                    </div>
+                </div>
+                
+                <p><i class="bi bi-geo-alt"></i> <strong>Ubicación:</strong> {{ evento.ubicacion }}</p>
+                
+                <p><i class="bi bi-person"></i> <strong>Creador:</strong> 
+                   {{ evento.creador.get_full_name|default:evento.creador.username }}
+                   <span class="badge bg-secondary">{{ evento.creador.perfil.get_rol_display }}</span>
+                </p>
+                
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6><i class="bi bi-people"></i> Capacidad del Evento</h6>
+                        <div class="progress" style="height: 30px;">
+                            {% widthratio evento.participantes.count evento.capacidad 100 as porcentaje %}
+                            <div class="progress-bar {% if porcentaje >= 80 %}bg-danger{% elif porcentaje >= 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ porcentaje }}%">
+                                {{ evento.participantes.count }}/{{ evento.capacidad }} ({{ porcentaje }}%)
+                            </div>
+                        </div>
+                        <p class="mt-2 mb-0">
+                            <strong>Espacios disponibles:</strong> {{ evento.espacios_disponibles }}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Botones de acción -->
+                {% if user.is_authenticated %}
+                <div class="d-grid gap-2 mt-4">
+                    {% if not esta_inscrito and not evento.esta_lleno %}
+                    <a href="{% url 'inscribirse_evento' evento.id %}" class="btn btn-success btn-lg">
+                        <i class="bi bi-person-plus"></i> Inscribirse al Evento
+                    </a>
+                    {% elif esta_inscrito %}
+                    <a href="{% url 'cancelar_inscripcion' evento.id %}" class="btn btn-warning btn-lg">
+                        <i class="bi bi-person-dash"></i> Cancelar Inscripción
+                    </a>
+                    {% elif evento.esta_lleno %}
+                    <button class="btn btn-secondary btn-lg" disabled>
+                        <i class="bi bi-exclamation-circle"></i> Evento Lleno
+                    </button>
+                    {% endif %}
+                    
+                    {% if es_creador or user.perfil.rol == 'administrador' or user.perfil.rol == 'organizador' %}
+                    <div class="btn-group">
+                        <a href="{% url 'editar_evento' evento.pk %}" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Editar Evento
+                        </a>
+                        {% if user.perfil.rol == 'administrador' %}
+                        <a href="{% url 'eliminar_evento' evento.pk %}" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Eliminar Evento
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="alert alert-info mt-4">
+                    <i class="bi bi-info-circle"></i>
+                    <a href="{% url 'login' %}">Inicia sesión</a> para inscribirte en este evento.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista de Participantes -->
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-people"></i> Participantes ({{ evento.participantes.count }})
+                </h5>
+            </div>
+            <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                {% if evento.participantes.all %}
+                <div class="list-group">
+                    {% for participante in evento.participantes.all %}
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-person-circle fs-3 text-primary me-3"></i>
+                            <div>
+                                <h6 class="mb-0">{{ participante.get_full_name|default:participante.username }}</h6>
+                                <small class="text-muted">{{ participante.perfil.get_rol_display }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-muted">Aún no hay participantes inscritos.</p>
+                {% endif %}    
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
